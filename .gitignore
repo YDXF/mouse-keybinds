@@ -1,0 +1,25 @@
+# .NET 构建产物
+bin/
+obj/
+artifacts/
+*.user
+*.suo
+
+# IDE
+.vs/
+.idea/
+*.swp
+
+# 备份文件（存档备份放在上级 backups 目录，不入库）
+*.es3
+*.bak
+backups/
+
+# 游戏运行日志
+*.log
+
+# 内部开发文档（不入开源仓库）
+agents.md
+
+# 构建产物
+build/
