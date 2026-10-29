@@ -40,7 +40,6 @@ In-game mod settings (stored at `ModConfigs/mouse_keybinds.json`):
 - Uses the game's built-in official ModLoader + Harmony. No reflection, no extra capabilities, no save-format changes.
 - Coexists with other keybind mods (e.g. *BackspaceClear* patches a different phase of the same method).
 - **Not supported:** left / right / middle mouse buttons, and buttons beyond side button 4 — map extra buttons to keyboard keys in your mouse driver.
-- **About "Mouse 2":** the game binds *Flip Item* to the middle mouse button by default, so that entry reads `Mouse 2` out of the box. `Mouse 2` is the middle click — not side button 2. Side buttons use the 1–4 naming above (`Mouse3`–`Mouse6`).
 
 ## Build
 

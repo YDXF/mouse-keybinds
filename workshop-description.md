@@ -37,7 +37,6 @@
 [*]可与其他改键类 Mod 共存（例如「退格清空改键」补的是同一方法的另一个阶段）
 [*]不支持鼠标左键 / 右键 / 中键（中键在拖拽时是翻转键，绑定其他操作会双重触发）
 [*]超出侧键 4 的额外按键需在鼠标驱动里映射为键盘键
-[*]说明：[b]Mouse 2[/b] 指鼠标中键，不是侧键 2。「翻转物品」默认绑在中键上，所以该项开箱显示 Mouse 2 属正常
 [/list]
 
 [hr][/hr]
@@ -72,7 +71,6 @@
 [*]Coexists with other keybind mods (e.g. BackspaceClear patches a different phase of the same method)
 [*]Left / right / middle mouse buttons are not supported (middle click is the vanilla flip key while dragging)
 [*]Buttons beyond side button 4 must be mapped to keyboard keys in your mouse driver
-[*]Note: [b]Mouse 2[/b] means middle click, not side button 2. *Flip Item* is bound to middle click by default, so that entry reading "Mouse 2" out of the box is normal
 [/list]
 
 [hr][/hr]
