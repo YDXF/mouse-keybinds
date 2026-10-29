@@ -4,7 +4,7 @@
   <Name>Mouse Keybinds / 鼠标键位支持</Name>
   <Author>YDXF</Author>
   <ModVersion>1.0.1</ModVersion>
-  <Description>让游戏原生改键界面支持录入鼠标侧键（侧键 1~4，对应 Mouse3~Mouse6），键名跟随游戏语言显示；修复拖拽时滚轮偶尔无法旋转物品的问题。&#10;Adds mouse side button capture (side buttons 1-4, Unity Mouse3-Mouse6) to the vanilla key rebinding UI with localized key names, and fixes the intermittent scroll-to-rotate failure while dragging.</Description>
+  <Description>让游戏原生改键界面支持录入鼠标侧键（侧键 1~4），键名跟随游戏语言显示；修复拖拽时滚轮偶尔无法旋转物品的问题。&#10;Adds mouse side button capture (side buttons 1-4) to the vanilla key rebinding UI with localized key names, and fixes the intermittent scroll-to-rotate failure while dragging.</Description>
 
   <GameVersions>
     <Version>0.46D</Version>
