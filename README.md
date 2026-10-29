@@ -1,6 +1,6 @@
 # Mouse Keybinds
 
-[中文说明](README.zh-CN.md) · [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=PLACEHOLDER)
+[中文说明](README.zh-CN.md) · [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3829349177)
 
 Bind **mouse side buttons** in Probably Stolen's vanilla key rebinding UI — and fix the intermittent scroll-to-rotate failure while dragging items.
 

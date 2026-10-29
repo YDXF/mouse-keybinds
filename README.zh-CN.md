@@ -1,6 +1,6 @@
 # 鼠标键位支持（Mouse Keybinds）
 
-[English](README.md) · [Steam 创意工坊](https://steamcommunity.com/sharedfiles/filedetails/?id=PLACEHOLDER)
+[English](README.md) · [Steam 创意工坊](https://steamcommunity.com/sharedfiles/filedetails/?id=3829349177)
 
 让《深空当铺：可能是偷的》原生的改键界面支持**鼠标侧键**，并修复拖拽物品时滚轮旋转偶尔失效的问题。
 
