@@ -40,6 +40,7 @@ In-game mod settings (stored at `ModConfigs/mouse_keybinds.json`):
 - Uses the game's built-in official ModLoader + Harmony. No reflection, no extra capabilities, no save-format changes.
 - Coexists with other keybind mods (e.g. *BackspaceClear* patches a different phase of the same method).
 - **Not supported:** left / right / middle mouse buttons, and buttons beyond side button 4 — map extra buttons to keyboard keys in your mouse driver.
+- **Uninstalling:** bindings you made with this mod keep working after it is removed, but they can no longer be re-recorded as mouse buttons. Overwrite them with any keyboard key in Settings → Key Bindings.
 
 ## Build
 
