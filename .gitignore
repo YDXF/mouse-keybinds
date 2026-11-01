@@ -26,3 +26,6 @@ build/
 
 # 工坊上传包（发布前从 Mods/ 重新复制，不入库）
 workshop/content/
+
+# 预览生成物
+workshop-description.preview.html
