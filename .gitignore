@@ -23,3 +23,6 @@ agents.md
 
 # 构建产物
 build/
+
+# 工坊上传包（发布前从 Mods/ 重新复制，不入库）
+workshop/content/

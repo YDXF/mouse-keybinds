@@ -19,6 +19,7 @@ namespace MouseKeybinds
 
         internal static ConfigEntry<bool> VerboseLog { get; private set; }
         internal static ConfigEntry<string> ScrollRotateModifier { get; private set; }
+        internal static ConfigEntry<bool> ConflictPrompt { get; private set; }
 
         public void Init(ModManifest manifest)
         {
@@ -39,13 +40,18 @@ namespace MouseKeybinds
                     () => "滚轮旋转修饰键",
                     new[] { "None", "LeftAlt", "RightAlt", "LeftShift", "LeftControl", "RightControl" },
                     () => "拖拽物品时按住该键滚动滚轮，强制旋转（堆叠物品同样生效）。选 None 恢复原版行为");
+
+                ConflictPrompt = Config.Define(
+                    "ConflictPrompt", true, "通用",
+                    () => "按键冲突弹窗",
+                    () => "录入已被其他功能使用的按键时，弹窗列出冲突功能并确认；关闭后冲突将直接允许绑定");
             }
             catch (Exception ex)
             {
                 Log.Warning("配置初始化失败，改用默认值: " + ex.Message);
             }
 
-            Log.Log($"v{manifest.ModVersion} 已加载（补丁: 侧键录入 / 键名本地化 / 滚轮旋转兜底 / 面板清理，无驱动对象）");
+            Log.Log($"v{manifest.ModVersion} 已加载（补丁: 侧键录入 / 键名本地化 / 协调器侧键 / 协调器键名 / 冲突检查弹窗 / 滚轮旋转兜底 / 面板清理，无驱动对象）");
         }
 
         public void OnEnable()

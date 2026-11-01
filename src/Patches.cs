@@ -68,6 +68,90 @@ namespace MouseKeybinds
     }
 
     /// <summary>
+    /// 储物协调器预设键位录入补丁（v1.1.0）。
+    ///
+    /// 「储物协调器」的容器预设快捷键录入走的是 MachineStorageCoordinator 自己的一套
+    /// （HandleInput → HandleKeyCapture → KeyboardKeys()），与设置界面的
+    /// KeyBindHelper.PollCapture 完全独立；其 KeyboardKeys() 同样带
+    /// `k != KeyCode.None && k < KeyCode.Mouse0` 过滤（反编译 L81418），
+    /// 所以设置界面能录侧键、协调器预设却录不进。
+    ///
+    /// 修复：postfix KeyboardKeys()，把 Mouse3~Mouse6 追加进返回的白名单数组。
+    /// 原方法内部缓存的静态数组只含键盘键，每次调用追加生成新数组，幂等且不影响缓存。
+    /// 录入后的触发（HandleHotkeys → Input.GetKeyDown((KeyCode)p.keyCode)）
+    /// 与持久化（keyCode 存 int）对鼠标键天然兼容，无需处理。
+    /// </summary>
+    [HarmonyPatch(typeof(MachineStorageCoordinator), "KeyboardKeys")]
+    public static class CoordinatorCaptureKeysPatch
+    {
+        private static readonly KeyCode[] SideKeys =
+        {
+            KeyCode.Mouse3,
+            KeyCode.Mouse4,
+            KeyCode.Mouse5,
+            KeyCode.Mouse6,
+        };
+
+        /// <summary>补丁前置检查：目标方法不存在时静默跳过，避免整 Mod 加载失败。</summary>
+        public static bool Prepare()
+        {
+            return AccessTools.Method(typeof(MachineStorageCoordinator), "KeyboardKeys") != null;
+        }
+
+        public static void Postfix(ref KeyCode[] __result)
+        {
+            if (__result == null || __result.Length == 0)
+            {
+                return;
+            }
+            if (Array.IndexOf(__result, KeyCode.Mouse3) >= 0)
+            {
+                return; // 已包含鼠标键，避免重复追加
+            }
+            KeyCode[] merged = new KeyCode[__result.Length + SideKeys.Length];
+            __result.CopyTo(merged, 0);
+            SideKeys.CopyTo(merged, __result.Length);
+            __result = merged;
+        }
+    }
+
+    /// <summary>
+    /// 储物协调器键名显示补丁（v1.1.0）。
+    ///
+    /// 协调器有自己的私有 KeyName(int)（反编译 L81140），默认对未识别的键返回
+    /// `keyCode.ToString()`，侧键会显示成 "Mouse3" 这类英文名。postfix 接管
+    /// Mouse3~Mouse6，与改键界面一致显示当前语言的「鼠标侧键N」。
+    /// </summary>
+    [HarmonyPatch(typeof(MachineStorageCoordinator), "KeyName")]
+    public static class CoordinatorKeyNamePatch
+    {
+        /// <summary>补丁前置检查：目标方法不存在时静默跳过，避免整 Mod 加载失败。</summary>
+        public static bool Prepare()
+        {
+            return AccessTools.Method(typeof(MachineStorageCoordinator), "KeyName") != null;
+        }
+
+        public static void Postfix(int keyCode, ref string __result)
+        {
+            switch ((KeyCode)keyCode)
+            {
+                case KeyCode.Mouse3:
+                    __result = ModHelper.GetLocalized(Core.ModId, "mouse_side_1");
+                    break;
+                case KeyCode.Mouse4:
+                    __result = ModHelper.GetLocalized(Core.ModId, "mouse_side_2");
+                    break;
+                case KeyCode.Mouse5:
+                    __result = ModHelper.GetLocalized(Core.ModId, "mouse_side_3");
+                    break;
+                case KeyCode.Mouse6:
+                    __result = ModHelper.GetLocalized(Core.ModId, "mouse_side_4");
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
     /// 显示名补丁：把 Mouse3~Mouse6 的默认英文 "Mouse 3~6" 替换为
     /// 玩家当前语言下的键名，走官方本地化机制（Localization/&lt;locale&gt;.csv + ModHelper.GetLocalized，
     /// 见反编译 LoadLocalization L228378 / ModHelper.GetLocalized）。

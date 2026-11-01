@@ -3,3 +3,17 @@ mouse_side_1,Przycisk boczny 1
 mouse_side_2,Przycisk boczny 2
 mouse_side_3,Przycisk boczny 3
 mouse_side_4,Przycisk boczny 4
+
+# v1.2.0 按键冲突弹窗
+conflict_title,Konflikt klawiszy
+conflict_header,Po zmianie „{0}” będzie używane dla:
+conflict_confirm,Powiązać mimo to?
+conflict_suppress,Nie ostrzegaj więcej o konfliktach klawiszy
+conflict_ok,OK
+conflict_cancel,Anuluj
+conflict_unnamed_preset,(preset bez nazwy)
+hidden_scroll_ignore,Klawisz ignorowania kółka (przytrzymaj + kręć = przewijanie pojemników podczas przenoszenia)
+hidden_mult10,Klawisz ilości ×10 (przytrzymaj + kółko zmienia o 10)
+hidden_mult100,Klawisz ilości ×100 (przytrzymaj + kółko zmienia o 100)
+conflict_this_change, (ta zmiana)
+conflict_preset_prefix,Preset koordynatora - 

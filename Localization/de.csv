@@ -3,3 +3,17 @@ mouse_side_1,Seitentaste 1
 mouse_side_2,Seitentaste 2
 mouse_side_3,Seitentaste 3
 mouse_side_4,Seitentaste 4
+
+# v1.2.0 按键冲突弹窗
+conflict_title,Tastenkonflikt
+conflict_header,Nach der Änderung wird „{0}“ verwendet für:
+conflict_confirm,Trotzdem zuweisen?
+conflict_suppress,Nicht mehr auf Tastenkonflikte hinweisen
+conflict_ok,OK
+conflict_cancel,Abbrechen
+conflict_unnamed_preset,(unbenanntes Preset)
+hidden_scroll_ignore,Rad-Ignorieren-Taste (halten + scrollen scrollt Container beim Ziehen)
+hidden_mult10,Mengen-Taste ×10 (halten + Rad ändert um 10)
+hidden_mult100,Mengen-Taste ×100 (halten + Rad ändert um 100)
+conflict_this_change, (diese Änderung)
+conflict_preset_prefix,Preset des Lagerkoordinators - 

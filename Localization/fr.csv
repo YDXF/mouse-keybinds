@@ -3,3 +3,17 @@ mouse_side_1,Bouton latéral 1
 mouse_side_2,Bouton latéral 2
 mouse_side_3,Bouton latéral 3
 mouse_side_4,Bouton latéral 4
+
+# v1.2.0 按键冲突弹窗
+conflict_title,Conflit de touches
+conflict_header,Après modification « {0} » servira à :
+conflict_confirm,Attribuer quand même ?
+conflict_suppress,Ne plus avertir en cas de conflit de touches
+conflict_ok,OK
+conflict_cancel,Annuler
+conflict_unnamed_preset,(préréglage sans nom)
+hidden_scroll_ignore,Touche d'ignorance de la molette (maintenir + molette = faire défiler les conteneurs pendant le déplacement)
+hidden_mult10,Touche quantité ×10 (maintenir + molette ajuste par 10)
+hidden_mult100,Touche quantité ×100 (maintenir + molette ajuste par 100)
+conflict_this_change, (ce changement)
+conflict_preset_prefix,Préréglage du coordinateur - 

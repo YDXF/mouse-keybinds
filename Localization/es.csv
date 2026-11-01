@@ -3,3 +3,17 @@ mouse_side_1,Botón lateral 1
 mouse_side_2,Botón lateral 2
 mouse_side_3,Botón lateral 3
 mouse_side_4,Botón lateral 4
+
+# v1.2.0 按键冲突弹窗
+conflict_title,Conflicto de teclas
+conflict_header,Tras el cambio «{0}» se usará para:
+conflict_confirm,¿Asignar de todas formas?
+conflict_suppress,No volver a avisar de conflictos de teclas
+conflict_ok,Aceptar
+conflict_cancel,Cancelar
+conflict_unnamed_preset,(preajuste sin nombre)
+hidden_scroll_ignore,Tecla de ignorar rueda (mantén pulsada + rueda = desplazar contenedores al arrastrar)
+hidden_mult10,Tecla de cantidad ×10 (mantén + rueda ajusta de 10 en 10)
+hidden_mult100,Tecla de cantidad ×100 (mantén + rueda ajusta de 100 en 100)
+conflict_this_change, (este cambio)
+conflict_preset_prefix,Preajuste del coordinador - 

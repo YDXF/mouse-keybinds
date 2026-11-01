@@ -3,3 +3,17 @@ mouse_side_1,マウスサイド1
 mouse_side_2,マウスサイド2
 mouse_side_3,マウスサイド3
 mouse_side_4,マウスサイド4
+
+# v1.2.0 按键冲突弹窗
+conflict_title,キーの競合
+conflict_header,変更後、「{0}」は次の機能に使用されます：
+conflict_confirm,それでも割り当てますか？
+conflict_suppress,今後キーの競合を通知しない
+conflict_ok,決定
+conflict_cancel,キャンセル
+conflict_unnamed_preset,（名前なしプリセット）
+hidden_scroll_ignore,スクロール無視キー（押しながらホイール = コンテナをスクロール）
+hidden_mult10,数量×10キー（押しながらホイールで10ずつ変更）
+hidden_mult100,数量×100キー（押しながらホイールで100ずつ変更）
+conflict_this_change,（今回の変更）
+conflict_preset_prefix,ストレージコーディネーターのプリセット - 
