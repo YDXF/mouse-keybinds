@@ -5,8 +5,8 @@ namespace MouseKeybinds
     /// <summary>
     /// Mod 入口，由 ModLoader 反射找到并实例化（程序集内只能有一个 IMod 实现）。
     ///
-    /// 本 Mod 是纯 Harmony 补丁形态：所有功能都在 Patches.cs 的补丁里，
-    /// 由游戏改键界面 / 拖拽系统被动触发，没有每帧逻辑，因此不挂 ModDriver。
+    /// 本 Mod 是纯 Harmony 补丁形态：所有功能都在 Patches.cs / ConflictCheck.cs 的补丁里，
+    /// 由储物协调器预设录入与拖拽系统被动触发，没有每帧逻辑，因此不挂 ModDriver。
     /// 补丁本身在 Init 之前由加载器的 PatchAll 自动完成（见总纲 §3.2）。
     /// </summary>
     public sealed class Core : IMod
@@ -44,14 +44,14 @@ namespace MouseKeybinds
                 ConflictPrompt = Config.Define(
                     "ConflictPrompt", true, "通用",
                     () => "按键冲突弹窗",
-                    () => "录入已被其他功能使用的按键时，弹窗列出冲突功能并确认；关闭后冲突将直接允许绑定");
+                    () => "在设置改键或协调器预设录入时，若按键已被其他功能使用则弹窗列出冲突项并确认；关闭后冲突将直接允许绑定");
             }
             catch (Exception ex)
             {
                 Log.Warning("配置初始化失败，改用默认值: " + ex.Message);
             }
 
-            Log.Log($"v{manifest.ModVersion} 已加载（补丁: 侧键录入 / 键名本地化 / 协调器侧键 / 协调器键名 / 冲突检查弹窗 / 滚轮旋转兜底 / 面板清理，无驱动对象）");
+            Log.Log($"v{manifest.ModVersion} 已加载（补丁: 协调器侧键录入 / 协调器键名 / 改键冲突提醒[设置+协调器] / 滚轮旋转兜底 / 面板清理，无驱动对象）");
         }
 
         public void OnEnable()

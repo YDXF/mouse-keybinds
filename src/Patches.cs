@@ -5,76 +5,25 @@ using UnityEngine;
 
 namespace MouseKeybinds
 {
-    /// <summary>
-    /// 核心补丁：让原生改键录入（PollCapture）能识别鼠标侧键（Mouse3 ~ Mouse6）。
-    ///
-    /// 原理：PollCapture 只遍历 KeyBindHelper.KeyboardKeys() —— 一个
-    /// `k != KeyCode.None && k < KeyCode.Mouse0` 的纯键盘白名单（反编译 L46240 附近），
-    /// 所以鼠标键永远录不进去。本补丁在原逻辑返回 None 且处于捕获状态时，
-    /// 自行检测侧键并把结果改写为 Key。
-    ///
-    /// 下游链路（改键 UI 暂存/冲突检测/ES3 存档/KeyName 显示/GetKeyDown 触发）
-    /// 对鼠标键天然兼容，无需补丁。
-    ///
-    /// 支持范围（Unity KeyCode 的鼠标键上限就是 Mouse6）：
-    /// - Mouse3 / Mouse4：标准鼠标的两个侧键（XButton1 / XButton2）；
-    /// - Mouse5 / Mouse6：多侧键鼠标的第 3、4 个额外键（罗技 G502、雷蛇那伽梵蛇等）。
-    ///   注意：超过 Mouse6 的按键（如 MMO 鼠标 12 键的其余键）Unity 接收不到，
-    ///   需在鼠标驱动里映射为键盘键。
-    ///
-    /// 为什么不支持 Mouse0/1/2：
-    /// - Mouse0（左键）是 UI 点击键，用户点「改键」按钮那一下就会被录成 Mouse0；
-    /// - Mouse1（右键）是原生交互键（pin_mode 等），冲突面大；
-    /// - Mouse2（中键）在拖拽物品时被 ItemMouseDragHandler 硬编码为「翻转」
-    ///   （键监听列表直接包含 KeyCode.Mouse2），且参与 CustomEventHandler 的双击检测，
-    ///   绑定其他操作后会双重触发 —— 故明确不支持（v0.2.0 起移除）。
-    /// </summary>
-    [HarmonyPatch(typeof(KeyBindHelper), nameof(KeyBindHelper.PollCapture))]
-    public static class PollCapturePatch
-    {
-        private static readonly KeyCode[] SideKeys =
-        {
-            KeyCode.Mouse3, // 侧键 1（XButton1）
-            KeyCode.Mouse4, // 侧键 2（XButton2）
-            KeyCode.Mouse5, // 侧键 3（多键鼠标的额外键）
-            KeyCode.Mouse6, // 侧键 4
-        };
-
-        /// <summary>补丁前置检查：目标方法不存在时静默跳过，避免整 Mod 加载失败。</summary>
-        public static bool Prepare()
-        {
-            return AccessTools.Method(typeof(KeyBindHelper), "PollCapture") != null;
-        }
-
-        public static void Postfix(ref KeyBindHelper.CaptureResult __result, ref KeyCode key)
-        {
-            // 原逻辑已产生结论（键盘键 / Escape 取消 / 非捕获状态）时不干预
-            if (__result != KeyBindHelper.CaptureResult.None || !KeyBindHelper.IsCapturing)
-            {
-                return;
-            }
-
-            foreach (KeyCode sideKey in SideKeys)
-            {
-                if (Input.GetKeyDown(sideKey))
-                {
-                    key = sideKey;
-                    __result = KeyBindHelper.CaptureResult.Key;
-                    Core.Debug($"录入鼠标侧键: {sideKey}");
-                    return;
-                }
-            }
-        }
-    }
+    // 补丁清单（v1.3.0：协调器侧键 + 双界面冲突提醒 + 滚轮兜底 + 面板清理）：
+    //   CoordinatorCaptureKeysPatch  —— 协调器预设录侧键
+    //   CoordinatorKeyNamePatch      —— 协调器预设键名本地化
+    //   HideDevModePatch             —— 隐藏本地 Mod 详情页的「开发者模式」
+    //   ScrollRotatePatch            —— 拖拽时修饰键 + 滚轮强制旋转
+    //   DragDiagnosticsPatch         —— 上述功能的诊断日志
+    // 冲突提醒（ConflictPromptPatch / CoordinatorConflictPatch）在 ConflictCheck.cs，
+    // 设置改键与协调器改键两处都会弹窗。
+    // 原生改键界面（设置 → 按键绑定）自 1.0.0.x 起已原生支持 Mouse1~Mouse6，
+    // v1.3.0 移除了该界面的录入与键名补丁，只保留冲突提醒。
 
     /// <summary>
     /// 储物协调器预设键位录入补丁（v1.1.0）。
     ///
     /// 「储物协调器」的容器预设快捷键录入走的是 MachineStorageCoordinator 自己的一套
     /// （HandleInput → HandleKeyCapture → KeyboardKeys()），与设置界面的
-    /// KeyBindHelper.PollCapture 完全独立；其 KeyboardKeys() 同样带
-    /// `k != KeyCode.None && k < KeyCode.Mouse0` 过滤（反编译 L81418），
-    /// 所以设置界面能录侧键、协调器预设却录不进。
+    /// KeyBindHelper.PollCapture 完全独立；其 KeyboardKeys() 带
+    /// `k != KeyCode.None && k < KeyCode.Mouse0` 过滤（Rev16 L86270 / Rev13 L83694），
+    /// 所以原生改键界面能录侧键、协调器预设却录不进。
     ///
     /// 修复：postfix KeyboardKeys()，把 Mouse3~Mouse6 追加进返回的白名单数组。
     /// 原方法内部缓存的静态数组只含键盘键，每次调用追加生成新数组，幂等且不影响缓存。
@@ -118,9 +67,9 @@ namespace MouseKeybinds
     /// <summary>
     /// 储物协调器键名显示补丁（v1.1.0）。
     ///
-    /// 协调器有自己的私有 KeyName(int)（反编译 L81140），默认对未识别的键返回
+    /// 协调器有自己的私有 KeyName(int)（Rev16 L85994 / Rev13 L83418），默认对未识别的键返回
     /// `keyCode.ToString()`，侧键会显示成 "Mouse3" 这类英文名。postfix 接管
-    /// Mouse3~Mouse6，与改键界面一致显示当前语言的「鼠标侧键N」。
+    /// Mouse3~Mouse6，显示当前语言的「鼠标侧键N」。
     /// </summary>
     [HarmonyPatch(typeof(MachineStorageCoordinator), "KeyName")]
     public static class CoordinatorKeyNamePatch
@@ -134,40 +83,6 @@ namespace MouseKeybinds
         public static void Postfix(int keyCode, ref string __result)
         {
             switch ((KeyCode)keyCode)
-            {
-                case KeyCode.Mouse3:
-                    __result = ModHelper.GetLocalized(Core.ModId, "mouse_side_1");
-                    break;
-                case KeyCode.Mouse4:
-                    __result = ModHelper.GetLocalized(Core.ModId, "mouse_side_2");
-                    break;
-                case KeyCode.Mouse5:
-                    __result = ModHelper.GetLocalized(Core.ModId, "mouse_side_3");
-                    break;
-                case KeyCode.Mouse6:
-                    __result = ModHelper.GetLocalized(Core.ModId, "mouse_side_4");
-                    break;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 显示名补丁：把 Mouse3~Mouse6 的默认英文 "Mouse 3~6" 替换为
-    /// 玩家当前语言下的键名，走官方本地化机制（Localization/&lt;locale&gt;.csv + ModHelper.GetLocalized，
-    /// 见反编译 LoadLocalization L228378 / ModHelper.GetLocalized）。
-    /// 当前语言缺条目时自动回退到 en.csv，再缺则回退到 key 本身。
-    /// </summary>
-    [HarmonyPatch(typeof(KeyBindHelper), nameof(KeyBindHelper.KeyName))]
-    public static class KeyNamePatch
-    {
-        public static bool Prepare()
-        {
-            return AccessTools.Method(typeof(KeyBindHelper), "KeyName") != null;
-        }
-
-        public static void Postfix(KeyCode key, ref string __result)
-        {
-            switch (key)
             {
                 case KeyCode.Mouse3:
                     __result = ModHelper.GetLocalized(Core.ModId, "mouse_side_1");
@@ -200,7 +115,8 @@ namespace MouseKeybinds
     {
         public static bool Prepare()
         {
-            return AccessTools.Method(typeof(ModUIManager), "ShowTrust") != null;
+            return AccessTools.Method(typeof(ModUIManager), "ShowTrust") != null
+                   && AccessTools.Field(typeof(ModUIManager), "handle") != null;
         }
 
         public static void Postfix(CustomUIWindow ___handle)
@@ -222,13 +138,13 @@ namespace MouseKeybinds
     /// 原生「拖拽时滚轮旋转物品」偶尔失效的原因（反编译 ItemMouseDragHandler.OnEventMouseScroll）：
     ///  1. 主因：拖拽的物品是堆叠（maxRemove &gt; 1）时，滚轮被设计为「调整拖拽数量」而非旋转；
     ///  2. 按住 scrollIgnoreKey（滚轮忽略键）时，滚轮改为滚动可滚动容器；
-    ///  3. sticky bug：isScrollIgnore 在异常路径（收不到 Release 事件）下会卡在 true，
-    ///     此后滚轮持续失效，直到再按一次该键。
+    ///  3. Rev12 及更早还有一个 sticky bug：isScrollIgnore 是字段，异常路径收不到 Release
+    ///     时会卡在 true。Rev16 起它改成了计算属性 `Input.GetKey(scrollIgnoreKey)`，
+    ///     不再有存储状态，这条 bug 从结构上消失，自修复逻辑也随之删除。
     ///
     /// 修复方式：
     ///  - Prefix 检测「正在拖拽 + 按住配置的修饰键（默认 LeftAlt）+ 滚轮有输入」，
-    ///    直接执行旋转（或按 swapDragRotateFlip 设置执行翻转）并跳过原逻辑，避免连带调整数量；
-    ///  - 顺带自修复 isScrollIgnore 的 sticky 状态（忽略键已松开但仍为 true 时重置）。
+    ///    直接执行旋转（或按 swapDragRotateFlip 设置执行翻转）并跳过原逻辑，避免连带调整数量。
     /// </summary>
     [HarmonyPatch(typeof(ItemMouseDragHandler), "OnEventMouseScroll")]
     public static class ScrollRotatePatch
@@ -239,24 +155,29 @@ namespace MouseKeybinds
         private static readonly MethodInfo RefreshDragHighlightMethod =
             AccessTools.Method(typeof(ItemMouseDragHandler), "RefreshDragHighlight");
 
+        /// <summary>
+        /// Rev12 / Rev13（公开正式版）里 isScrollIgnore 是实例字段，异常路径收不到 Release
+        /// 会卡在 true，此后滚轮持续失效；Rev16 起改成计算属性，字段不存在。
+        /// 这里按需取字段：取不到（Rev16+）就整段跳过，不依赖版本号判断。
+        /// </summary>
+        private static readonly FieldInfo ScrollIgnoreField =
+            AccessTools.Field(typeof(ItemMouseDragHandler), "isScrollIgnore");
+
         public static bool Prepare()
         {
-            return AccessTools.Method(typeof(ItemMouseDragHandler), "OnEventMouseScroll") != null;
+            return AccessTools.Method(typeof(ItemMouseDragHandler), "OnEventMouseScroll") != null
+                   && AccessTools.Field(typeof(ItemMouseDragHandler), "currentItem") != null;
         }
 
         public static bool Prefix(
             ItemMouseDragHandler __instance,
             Vector2 scrollDelta,
-            ref GameItemElement ___currentItem,
-            ref bool ___isScrollIgnore)
+            ref GameItemElement ___currentItem)
         {
-            // ① 自修复 sticky 状态：忽略键已松开但标志卡在 true（原生丢失 Release 事件时会这样）
-            if (___isScrollIgnore && !Input.GetKey(__instance.scrollIgnoreKey))
-            {
-                ___isScrollIgnore = false;
-            }
+            // Rev12/Rev13 的 sticky 自修复；Rev16+ 无此字段，直接跳过
+            RepairStickyScrollIgnore(__instance);
 
-            // ② 仅在「拖拽中 + 按住修饰键 + 滚轮有输入」时接管
+            // 仅在「拖拽中 + 按住修饰键 + 滚轮有输入」时接管
             if (!__instance.IsDraggingItem || ___currentItem == null)
             {
                 return true;
@@ -293,6 +214,31 @@ namespace MouseKeybinds
             return false; // 跳过原生逻辑，避免同时调整数量
         }
 
+        private static void RepairStickyScrollIgnore(ItemMouseDragHandler instance)
+        {
+            if (ScrollIgnoreField == null)
+            {
+                return; // Rev16+：计算属性，没有可修复的存储状态
+            }
+            try
+            {
+                if (!(ScrollIgnoreField.GetValue(instance) is bool stuck) || !stuck)
+                {
+                    return;
+                }
+                if (Input.GetKey(instance.scrollIgnoreKey))
+                {
+                    return; // 键仍按着，属正常忽略
+                }
+                ScrollIgnoreField.SetValue(instance, false);
+                Core.Debug("修复 sticky isScrollIgnore");
+            }
+            catch
+            {
+                // 自修复失败不影响主流程
+            }
+        }
+
         private static KeyCode ParseModifier(ConfigEntry<string> entry)
         {
             string raw = entry?.Value;
@@ -310,7 +256,7 @@ namespace MouseKeybinds
     ///
     /// 输出项：
     ///  - unitCount / maxRemove：maxRemove &gt; 1 时滚轮走「调数量」分支（堆叠物品才会出现）；
-    ///  - isScrollIgnore：为 true 时滚轮被原生逻辑忽略（旋转失效）；
+    ///  - scrollIgnore：Rev16 起 isScrollIgnore 是计算属性，这里按 scrollIgnoreKey 实时判断；
     ///  - scrollIgnoreKey / scrollMult10Key / scrollMult100Key：这三个是场景里配置的
     ///    Inspector 字段（不在 KeyBindHelper 体系内），实际值只能运行时读取。
     /// </summary>
@@ -319,14 +265,15 @@ namespace MouseKeybinds
     {
         public static bool Prepare()
         {
-            return AccessTools.Method(typeof(ItemMouseDragHandler), "StartDrag") != null;
+            return AccessTools.Method(typeof(ItemMouseDragHandler), "StartDrag") != null
+                   && AccessTools.Field(typeof(ItemMouseDragHandler), "currentItem") != null
+                   && AccessTools.Field(typeof(ItemMouseDragHandler), "maxRemove") != null;
         }
 
         public static void Postfix(
             ItemMouseDragHandler __instance,
             GameItemElement ___currentItem,
-            int ___maxRemove,
-            bool ___isScrollIgnore)
+            int ___maxRemove)
         {
             if (Core.VerboseLog == null || !Core.VerboseLog.Value)
             {
@@ -337,8 +284,9 @@ namespace MouseKeybinds
             {
                 string id = ___currentItem?.identifier ?? "?";
                 int units = ___currentItem?.unitCount ?? 0;
+                bool scrollIgnore = Input.GetKey(__instance.scrollIgnoreKey);
                 Core.Log?.Log(
-                    $"[诊断] 拖拽 {id} unitCount={units} maxRemove={___maxRemove} isScrollIgnore={___isScrollIgnore} | " +
+                    $"[诊断] 拖拽 {id} unitCount={units} maxRemove={___maxRemove} isScrollIgnore={scrollIgnore} | " +
                     $"scrollIgnoreKey={__instance.scrollIgnoreKey} mult10={__instance.scrollMult10Key} mult100={__instance.scrollMult100Key}");
             }
             catch

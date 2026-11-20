@@ -3,11 +3,11 @@
   <ID>mouse_keybinds</ID>
   <Name>Mouse Keybinds / 鼠标键位支持</Name>
   <Author>YDXF</Author>
-  <ModVersion>1.2.0</ModVersion>
-  <Description>让游戏原生改键界面与储物协调器容器预设支持录入鼠标侧键（侧键 1~4），键名跟随游戏语言显示；录入已被其他功能使用的按键时弹窗确认（一键多功能，可关闭提示）；修复拖拽时滚轮偶尔无法旋转物品的问题。&#10;Adds mouse side button capture (side buttons 1-4) to the vanilla key rebinding UI and the Storage Coordinator presets, with localized key names; shows a confirm dialog when a key is already in use (one key, multiple actions; prompt can be disabled); and fixes the intermittent scroll-to-rotate failure while dragging.</Description>
+  <ModVersion>1.3.0</ModVersion>
+  <Description>让储物协调器的容器预设快捷键支持录入鼠标侧键（侧键 1~4），键名跟随游戏语言显示；设置改键与协调器改键时，按键冲突都会弹窗提醒，可选择一键多功能；并修复拖拽物品时滚轮偶尔无法旋转的问题。兼容游戏 1.0.0.x。&#10;Adds mouse side button capture (side buttons 1-4) to the Storage Coordinator preset hotkeys, with key names localized to 8 languages; warns about key conflicts in both the vanilla rebinding screen and the coordinator presets (one key for multiple actions); and fixes the intermittent scroll-to-rotate failure while dragging. Compatible with game 1.0.0.x.</Description>
 
   <GameVersions>
-    <Version>0.46D</Version>
+    <Version>1.0.0.*</Version>
   </GameVersions>
 
   <Prerequisites />

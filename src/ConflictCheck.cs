@@ -9,19 +9,21 @@ using UnityEngine;
 namespace MouseKeybinds
 {
     /// <summary>
-    /// 按键冲突检查 + 确认弹窗（v1.2.0）。
+    /// 按键冲突检查 + 确认弹窗（v1.2.0，v1.3.0 起只服务储物协调器预设）。
     ///
     /// 设计（agents.md §4.9）：录入一个已被其他功能使用的按键时，弹窗列出该键已承担的
-    /// 全部功能（24 个可改键位 / 储物协调器预设 / 拖拽系统的隐藏场景键位），玩家可选择
-    /// 继续绑定（一键多功能，原版 1.0.0.6 起游戏在改键界面是直接拒绝的）或取消；
-    /// 勾选「以后不再提示」后冲突直接允许，可随时在 Mod 设置里重新打开。
+    /// 全部功能（原生可改键位 / 其他协调器预设 / 拖拽系统的隐藏场景键位），玩家可选择
+    /// 继续绑定（一键多功能）或取消（还原旧键值）；勾选「以后不再提示」后冲突直接允许，
+    /// 可随时在 Mod 设置里重新打开。
+    ///
+    /// v1.3.0：原生改键界面（设置 → 按键绑定）已自行支持录入鼠标键，本 Mod 不再接管其**录入**；
+    /// 但冲突提醒在**设置改键与协调器改键两处都保留**，让两边行为一致。
     ///
     /// 冲突登记簿（三处来源）：
-    ///  1. KeyBindHelper.Bindings —— 24 个原生可改键位（label 已按语言本地化）；
+    ///  1. KeyBindHelper.Bindings —— 26 个原生可改键位（label 已按语言本地化）；
     ///  2. MachineStorageCoordinator.presets —— 当前打开的协调器的容器预设快捷键；
     ///  3. ItemMouseDragHandler 的三个 Inspector 场景键（滚动忽略 / 数量×10 / ×100），
-    ///     不在改键界面显示，只能运行时读取。拖拽固定键（右键交互 / 中键翻转）不参与：
-    ///     Mouse1/Mouse2 永远不会被录入（本 Mod 录入范围 = 键盘 + Mouse3~6），不可能冲突。
+    ///     不在改键界面显示，只能运行时读取。
     ///
     /// 弹窗用 CustomUIManager.CreateWindow + AddLabel/AddToggle/AddButton 搭建
     /// （与原版储物协调器窗口同一套 UI 原语），层用默认 overlay。
@@ -46,6 +48,22 @@ namespace MouseKeybinds
             return ModHelper.GetLocalized(Core.ModId, key, args);
         }
 
+        /// <summary>
+        /// 弹窗里的键名：鼠标侧键走本 Mod 的本地化条目，其余交回原生 KeyName。
+        /// （v1.3.0 移除了 KeyBindHelper.KeyName 的补丁，这里自己做一次映射。）
+        /// </summary>
+        internal static string DisplayKeyName(KeyCode key)
+        {
+            switch (key)
+            {
+                case KeyCode.Mouse3: return Loc("mouse_side_1");
+                case KeyCode.Mouse4: return Loc("mouse_side_2");
+                case KeyCode.Mouse5: return Loc("mouse_side_3");
+                case KeyCode.Mouse6: return Loc("mouse_side_4");
+                default: return KeyBindHelper.KeyName(key);
+            }
+        }
+
         // ---------- 冲突收集 ----------
 
         /// <summary>
@@ -57,7 +75,7 @@ namespace MouseKeybinds
         {
             List<string> list = new List<string>();
 
-            // 1) 原生 24 个可改键位
+            // 1) 原生 26 个可改键位
             try
             {
                 foreach (KeyBindHelper.Binding b in KeyBindHelper.Bindings)
@@ -144,7 +162,7 @@ namespace MouseKeybinds
         }
 
         /// <summary>
-        /// 按 optionId 找键位的功能名（用于「本次修改」行）。
+        /// 按 optionId 找键位的功能名（用于设置改键时的「本次修改」行）。
         /// 注意：改键界面捕获流程里流转的是注册表 option id（`key_rotate_ccw` 这种带 key_ 前缀），
         /// 而 Bindings 表里的 id 是裸绑定 id（`rotate_ccw`）——两种都要能查到，查不到才回退原样。
         /// </summary>
@@ -173,7 +191,7 @@ namespace MouseKeybinds
         /// <summary>
         /// 弹出冲突确认框。清单第一行是 <paramref name="selfName"/>（本次正在修改的功能，
         /// 空/null 则跳过），其后为已占用该键的其他功能。onConfirm：继续绑定（调用方完成写入）；
-        /// onCancel：放弃（一般为空操作，改键界面保持录入态，协调器由补丁还原旧键值）。
+        /// onCancel：放弃（改键界面保持录入态，协调器由补丁还原旧键值）。
         /// 弹窗无法打开时退化为直接允许（记日志）。
         /// </summary>
         internal static void ShowConfirm(KeyCode key, string selfName, List<string> conflicts, Action onConfirm, Action onCancel)
@@ -188,7 +206,7 @@ namespace MouseKeybinds
 
                 StringBuilder sb = new StringBuilder();
                 sb.Append('\n'); // 标题栏与正文之间留空
-                sb.Append(Loc("conflict_header", KeyBindHelper.KeyName(key))).Append('\n');
+                sb.Append(Loc("conflict_header", DisplayKeyName(key))).Append('\n');
                 int n = 1;
                 if (!string.IsNullOrEmpty(selfName))
                 {
@@ -253,7 +271,7 @@ namespace MouseKeybinds
                 b.Center();
                 b.Show();
                 dialogOpen = true;
-                Core.Debug($"冲突弹窗: {KeyBindHelper.KeyName(key)}，冲突 {conflicts.Count} 项");
+                Core.Debug($"冲突弹窗: {DisplayKeyName(key)}，冲突 {conflicts.Count} 项");
             }
             catch (Exception ex)
             {
@@ -340,11 +358,15 @@ namespace MouseKeybinds
         }
     }
 
+
     /// <summary>
-    /// 改键界面冲突接管（v1.2.0）：原生 PollKeyCapture 在发现冲突时直接拒绝写入；
+    /// 改键界面冲突接管（v1.2.0；v1.3.0 保留）：原生 PollKeyCapture 在发现冲突时直接拒绝写入；
     /// 本补丁在其之前拦截冲突分支——弹确认框（或按配置直接允许），确认后代原生完成
     /// 写入（pendingKeys + EndCapture + RefreshRules）。无冲突 / 保留键 / 取消等分支
     /// 一律放行原生处理。
+    ///
+    /// v1.3.0 起本 Mod 不再接管该界面的**录入**（原生已支持鼠标键），只保留这层冲突提醒，
+    /// 使设置改键与协调器改键的行为一致。
     /// </summary>
     [HarmonyPatch(typeof(GameOptionUIManager), "PollKeyCapture")]
     public static class ConflictPromptPatch
@@ -362,6 +384,7 @@ namespace MouseKeybinds
         public static bool Prepare()
         {
             return AccessTools.Method(typeof(GameOptionUIManager), "PollKeyCapture") != null
+                   && AccessTools.Field(typeof(GameOptionUIManager), "pendingKeys") != null
                    && EndCaptureMethod != null && SetStatusMethod != null
                    && RefreshRulesMethod != null && IsOpenProperty != null;
         }
